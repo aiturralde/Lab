@@ -18,3 +18,5 @@ Remove-WindowsFeature -name fs-smb1
 Set-SmbServerConfiguration -EnableSMB1Protocol $False -Force
 
 Remove-WindowsFeature -name Windows-Defender-Features
+
+Restart-Computer -Force
