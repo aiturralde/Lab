@@ -111,7 +111,7 @@ resource "azurerm_managed_disk" "datadisk" {  //Here defined data disk structure
   disk_size_gb         = "1023"    
 }  
 
-resource "azurerm_windows_virtual_machine" "example" {
+resource "azurerm_windows_virtual_machine" "vm" {
   name                = "example-machine"
   resource_group_name = azurerm_resource_group.rg.name
   location            = "eastus"
@@ -133,4 +133,28 @@ resource "azurerm_windows_virtual_machine" "example" {
     sku       = "2016-Datacenter"
     version   = "latest"
   }
+}
+
+resource "azurerm_virtual_machine_extension" "MYADJOINEDVMCSE" {
+  name                 = "MYADJOINEDVMCSE"
+  virtual_machine_id   = azurerm_windows_virtual_machine.vm.id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.1.3"
+
+  # CustomVMExtension Documetnation: https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/custom-script-windows
+
+  settings = <<SETTINGS
+    {
+        "fileUris": ["https://mystorageaccountname.blob.core.windows.net/postdeploystuff/post-deploy.ps1"]
+    }
+SETTINGS
+  protected_settings = <<PROTECTED_SETTINGS
+    {
+      "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File post-deploy.ps1",
+      "storageAccountName": "mystorageaccountname",
+      "storageAccountKey": "myStorageAccountKey"
+    }
+  PROTECTED_SETTINGS
+  depends_on = ["azurerm_virtual_machine_extension.MYADJOINEDVMADDE"]
 }
